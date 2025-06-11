@@ -1,0 +1,22 @@
+export const taqueriaProducts = [
+  { id: 'prod1', name: 'Tacos mixtos', price: 3.00, category: 'Tacos' },
+  { id: 'prod2', name: 'Tacos de pollo', price: 3.00, category: 'Tacos' },
+  { id: 'prod3', name: 'Tacos de res', price: 3.25, category: 'Tacos' },
+  { id: 'prod4', name: 'Tacos al pastor', price: 3.00, category: 'Tacos' },
+  { id: 'prod5', name: 'Tortas al pastor', price: 3.00, category: 'Tacos' },
+  { id: 'prod6', name: 'Tortas de pollo', price: 3.00, category: 'Tacos' },
+  { id: 'prod7', name: 'Tortas de res', price: 3.25, category: 'Tacos' },
+  { id: 'prod8', name: 'Tortas mixtas', price: 3.00, category: 'Tacos' },
+  { id: 'prod9', name: 'Quesadillas de pollo', price: 3.00, category: 'Quesadillas' },
+  { id: 'prod10', name: 'Quesadillas mixtas', price: 3.00, category: 'Quesadillas' },
+  { id: 'prod11', name: 'Burritos de res', price: 3.25, category: 'Burritos' },
+  { id: 'prod12', name: 'Burritos de pollo', price: 3.00, category: 'Tacos' },
+  { id: 'prod13', name: 'Burritos mixtos', price: 3.00, category: 'Tacos' },
+  { id: 'prod14', name: 'Burritos al pastor', price: 3.00, category: 'Tacos' },
+  { id: 'prod15', name: 'Sopa de tortillas', price: 3.00, category: 'Sopas' },
+  { id: 'prod16', name: 'Sodas en Latadas', price: 0.75, category: 'Bebidas' },
+  { id: 'prod17', name: 'Jugos del valle', price: 0.75, category: 'Bebidas' },
+  { id: 'prod18', name: 'Gatorade', price: 1.00, category: 'Bebidas' },
+  { id: 'prod19', name: 'Botellas de agua', price: 0.50, category: 'Bebidas' },
+  
+];
