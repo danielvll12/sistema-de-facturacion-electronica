@@ -4,9 +4,7 @@ import { Trash2 } from 'lucide-react';
 
 const InvoiceTable = ({ items, onRemoveItem }) => {
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const taxRate = 0.13;
-  const taxAmount = subtotal * taxRate;
-  const total = subtotal + taxAmount;
+  const total = subtotal; // Total ahora es igual al subtotal, sin IVA
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
@@ -43,16 +41,6 @@ const InvoiceTable = ({ items, onRemoveItem }) => {
             ))}
           </tbody>
           <tfoot>
-            <tr>
-              <td colSpan="3" className="px-4 py-4 text-right text-sm font-medium text-gray-900">Subtotal:</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(subtotal)}</td>
-              <td></td>
-            </tr>
-            <tr>
-              <td colSpan="3" className="px-4 py-4 text-right text-sm font-medium text-gray-900">IVA (13%):</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(taxAmount)}</td>
-              <td></td>
-            </tr>
             <tr className="bg-gray-50">
               <td colSpan="3" className="px-4 py-4 text-right text-lg font-bold text-gray-900">Total:</td>
               <td className="px-4 py-4 whitespace-nowrap text-lg font-bold text-gray-900">{formatCurrency(total)}</td>

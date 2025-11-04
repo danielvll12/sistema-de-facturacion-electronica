@@ -25,9 +25,9 @@ const App = () => {
 
   const [invoiceNumber, setInvoiceNumber] = useState(0);
   const taqueriaName = "Taquería Mercy";
+  const taqueriaAddress = "3era calle oriente 6 av. norte, media cuadra arriba de CAESS, Cojutepeque, Cuscatlán"; 
   const [currentDateTime, setCurrentDateTime] = useState(formatDateTime(new Date()));
 
-  // Nuevo estado para el pago, vuelto y número WhatsApp
   const [paymentAmount, setPaymentAmount] = useState('');
   const [change, setChange] = useState(null);
   const [whatsappNumber, setWhatsappNumber] = useState('');
@@ -43,10 +43,8 @@ const App = () => {
     localStorage.setItem('invoiceItems', JSON.stringify(invoiceItems));
   }, [invoiceItems]);
 
-  // Calcula subtotal para usarlo en el cálculo de vuelto
   const subtotal = invoiceItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
-  const iva = subtotal * 0.13;
-  const total = subtotal + iva;
+  const total = subtotal;
 
   const handleAddProduct = (product) => {
     setInvoiceItems(prevItems => {
@@ -80,8 +78,9 @@ const App = () => {
     doc.setFontSize(18);
     doc.text(taqueriaName, 14, 20);
     doc.setFontSize(12);
-    doc.text(`Factura No: ${invoiceNumber}`, 14, 30);
-    doc.text(`Fecha y Hora: ${currentDateTime}`, 14, 36);
+    doc.text(`Dirección: ${taqueriaAddress}`, 14, 26);
+    doc.text(`Factura No: ${invoiceNumber}`, 14, 36);
+    doc.text(`Fecha y Hora: ${currentDateTime}`, 14, 42);
 
     const tableData = invoiceItems.map(item => [
       item.name,
@@ -91,17 +90,21 @@ const App = () => {
     ]);
 
     autoTable(doc, {
-      startY: 45,
+      startY: 50,
       head: [['Producto', 'Cantidad', 'Precio Unitario', 'Total']],
       body: tableData,
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 14, finalY);
-    doc.text(`IVA (13%): $${iva.toFixed(2)}`, 14, finalY + 6);
-    doc.text(`Total a Pagar: $${total.toFixed(2)}`, 14, finalY + 12);
-    doc.text(`Pago Recibido: $${Number(paymentAmount).toFixed(2)}`, 14, finalY + 18);
-    doc.text(`Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}`, 14, finalY + 24);
+    doc.text(`Total a Pagar: $${total.toFixed(2)}`, 14, finalY + 6);
+    doc.text(`Pago Recibido: $${Number(paymentAmount).toFixed(2)}`, 14, finalY + 12);
+    doc.text(`Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}`, 14, finalY + 18);
+
+    // Mensajes de agradecimiento y "Vuelva pronto"
+    doc.setFontSize(14);
+    doc.text("¡Gracias por su compra!", 14, finalY + 28);
+    doc.text("¡Vuelva pronto!", 14, finalY + 36);
 
     doc.save(`Factura-${invoiceNumber}.pdf`);
 
@@ -131,7 +134,6 @@ const App = () => {
     setChange(pago - total);
   };
 
-  // Función para enviar factura por WhatsApp usando número ingresado
   const handleSendWhatsApp = () => {
     if (invoiceItems.length === 0) {
       alert('No hay productos en la factura para enviar.');
@@ -149,12 +151,12 @@ const App = () => {
     }
 
     const doc = new jsPDF();
-
     doc.setFontSize(18);
     doc.text(taqueriaName, 14, 20);
     doc.setFontSize(12);
-    doc.text(`Factura No: ${invoiceNumber}`, 14, 30);
-    doc.text(`Fecha y Hora: ${currentDateTime}`, 14, 36);
+    doc.text(`Dirección: ${taqueriaAddress}`, 14, 26);
+    doc.text(`Factura No: ${invoiceNumber}`, 14, 36);
+    doc.text(`Fecha y Hora: ${currentDateTime}`, 14, 42);
 
     const tableData = invoiceItems.map(item => [
       item.name,
@@ -164,43 +166,39 @@ const App = () => {
     ]);
 
     autoTable(doc, {
-      startY: 45,
+      startY: 50,
       head: [['Producto', 'Cantidad', 'Precio Unitario', 'Total']],
       body: tableData,
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 14, finalY);
-    doc.text(`IVA (13%): $${iva.toFixed(2)}`, 14, finalY + 6);
-    doc.text(`Total a Pagar: $${total.toFixed(2)}`, 14, finalY + 12);
-    doc.text(`Pago Recibido: $${Number(paymentAmount).toFixed(2)}`, 14, finalY + 18);
-    doc.text(`Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}`, 14, finalY + 24);
+    doc.text(`Total a Pagar: $${total.toFixed(2)}`, 14, finalY + 6);
+    doc.text(`Pago Recibido: $${Number(paymentAmount).toFixed(2)}`, 14, finalY + 12);
+    doc.text(`Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}`, 14, finalY + 18);
+    doc.setFontSize(14);
+    doc.text("¡Gracias por su compra!", 14, finalY + 28);
+    doc.text("¡Vuelva pronto!", 14, finalY + 36);
 
-    // Generar Blob y URL temporal para compartir
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
 
-    // Armar mensaje
     let message = `*Factura No:* ${invoiceNumber}\n`;
-    message += `*Fecha y Hora:* ${currentDateTime}\n\n`;
+    message += `*Fecha y Hora:* ${currentDateTime}\n`;
+    message += `*Dirección:* ${taqueriaAddress}\n\n`;
     message += `Productos:\n`;
     invoiceItems.forEach(item => {
       message += `- ${item.name} x${item.quantity} = $${(item.quantity * item.price).toFixed(2)}\n`;
     });
     message += `\nSubtotal: $${subtotal.toFixed(2)}\n`;
-    message += `IVA (13%): $${iva.toFixed(2)}\n`;
     message += `Total: $${total.toFixed(2)}\n`;
     message += `Pago recibido: $${Number(paymentAmount).toFixed(2)}\n`;
     message += `Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}\n\n`;
-   
+    message += "¡Gracias por su compra!\n¡Vuelva pronto!";
 
     const encodedMessage = encodeURIComponent(message);
-    // Usar el número para abrir chat directo
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
-
-    // Limpiar URL temporal después de 1 minuto
-   
   };
 
   return (
@@ -214,7 +212,6 @@ const App = () => {
         <ProductSelector onAddProduct={handleAddProduct} />
         <InvoiceTable items={invoiceItems} onRemoveItem={handleRemoveItem} />
 
-        {/* Campo para pago y botón para calcular vuelto */}
         <div className="my-4 p-4 bg-white rounded shadow">
           <label className="block mb-2 font-semibold">
             Pago recibido:
@@ -242,7 +239,6 @@ const App = () => {
           )}
         </div>
 
-        {/* Campo para ingresar número de WhatsApp */}
         <div className="my-4 p-4 bg-white rounded shadow">
           <label className="block mb-2 font-semibold">
             Número de WhatsApp (solo números, sin + ni espacios):
@@ -261,7 +257,6 @@ const App = () => {
           onClearInvoice={handleClearInvoice}
         />
 
-        {/* Botón para enviar factura por WhatsApp */}
         <div className="mt-4">
           <button
             onClick={handleSendWhatsApp}
