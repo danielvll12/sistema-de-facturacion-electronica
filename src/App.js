@@ -62,29 +62,31 @@ const App = () => {
     setInvoiceItems(prevItems => prevItems.filter(item => item.id !== productId));
   };
 
-  const handleGenerateInvoice = () => {
-    if (invoiceItems.length === 0) {
-      alert('No hay productos en la factura para generar.');
-      return;
-    }
-
-    if (paymentAmount === '' || Number(paymentAmount) < total) {
-      alert(`El pago debe ser un número válido y mayor o igual al total $${total.toFixed(2)}.`);
-      return;
-    }
-
-    const doc = new jsPDF();
+  const drawTicketBorder = (doc, contentHeight) => {
+    const margin = 10;
     const pageWidth = doc.internal.pageSize.getWidth();
+    doc.setLineWidth(0.5);
+    doc.rect(margin, margin, pageWidth - margin * 2, contentHeight);
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
 
     // Nombre de taquería centrado
     doc.setFontSize(18);
-    const textWidth = doc.getTextWidth(taqueriaName);
-    doc.text(taqueriaName, (pageWidth - textWidth) / 2, 20);
+    doc.text(taqueriaName, pageWidth / 2, y, { align: "center" });
+    y += 10;
 
     doc.setFontSize(12);
-    doc.text(`Factura No: ${invoiceNumber}`, 14, 30);
-    doc.text(`Fecha y Hora: ${currentDateTime}`, 14, 36);
+    doc.text(`Factura No: ${invoiceNumber}`, 14, y);
+    y += 6;
+    doc.text(`Fecha y Hora: ${currentDateTime}`, 14, y);
+    y += 10;
 
+    // Tabla de productos
     const tableData = invoiceItems.map(item => [
       item.name,
       item.quantity,
@@ -93,42 +95,59 @@ const App = () => {
     ]);
 
     autoTable(doc, {
-      startY: 45,
+      startY: y,
       head: [['Producto', 'Cantidad', 'Precio Unitario', 'Total']],
       body: tableData,
     });
 
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 14, finalY);
-    doc.text(`Total a Pagar: $${total.toFixed(2)}`, 14, finalY + 6);
-    doc.text(`Pago Recibido: $${Number(paymentAmount).toFixed(2)}`, 14, finalY + 12);
-    doc.text(`Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}`, 14, finalY + 18);
+    y = doc.lastAutoTable.finalY + 10;
 
-    // Mensajes de agradecimiento y “Vuelva pronto”
+    // Totales
+    doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 14, y);
+    y += 6;
+    doc.text(`Total a Pagar: $${total.toFixed(2)}`, 14, y);
+    y += 6;
+    doc.text(`Pago Recibido: $${Number(paymentAmount).toFixed(2)}`, 14, y);
+    y += 6;
+    doc.text(`Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}`, 14, y);
+    y += 10;
+
+    // Mensajes al final
     doc.setFontSize(14);
-    doc.text("¡Gracias por su compra!", 14, finalY + 28);
-    doc.text("¡Vuelva pronto!", 14, finalY + 36);
+    doc.text("¡Gracias por su compra!", 14, y);
+    y += 6;
+    doc.text("¡Vuelva pronto!", 14, y);
+    y += 10;
 
     // Dirección al final
     doc.setFontSize(12);
-    doc.text(`Dirección: ${taqueriaAddress}`, 14, doc.internal.pageSize.getHeight() - 20);
+    doc.text(`Dirección: ${taqueriaAddress}`, 14, y);
 
+    // Dibujar borde alrededor de todo el ticket
+    drawTicketBorder(doc, y + 10);
+
+    return doc;
+  };
+
+  const handleGenerateInvoice = () => {
+    if (invoiceItems.length === 0) {
+      alert('No hay productos en la factura para generar.');
+      return;
+    }
+    if (paymentAmount === '' || Number(paymentAmount) < total) {
+      alert(`El pago debe ser un número válido y mayor o igual al total $${total.toFixed(2)}.`);
+      return;
+    }
+
+    const doc = generatePDF();
     doc.save(`Factura-${invoiceNumber}.pdf`);
 
     alert(`Factura No. ${invoiceNumber} generada y descargada con éxito!`);
 
-    setInvoiceNumber(prevNumber => prevNumber + 1);
+    setInvoiceNumber(prev => prev + 1);
     setInvoiceItems([]);
     setPaymentAmount('');
     setChange(null);
-  };
-
-  const handleClearInvoice = () => {
-    if (window.confirm('¿Estás seguro de que quieres limpiar la factura actual?')) {
-      setInvoiceItems([]);
-      setPaymentAmount('');
-      setChange(null);
-    }
   };
 
   const handleCalculateChange = () => {
@@ -141,65 +160,37 @@ const App = () => {
     setChange(pago - total);
   };
 
+  const handleClearInvoice = () => {
+    if (window.confirm('¿Estás seguro de que quieres limpiar la factura actual?')) {
+      setInvoiceItems([]);
+      setPaymentAmount('');
+      setChange(null);
+    }
+  };
+
   const handleSendWhatsApp = () => {
     if (invoiceItems.length === 0) {
       alert('No hay productos en la factura para enviar.');
       return;
     }
-
     if (paymentAmount === '' || Number(paymentAmount) < total) {
       alert(`El pago debe ser un número válido y mayor o igual al total $${total.toFixed(2)}.`);
       return;
     }
-
     if (!whatsappNumber.match(/^\d{8,15}$/)) {
       alert('Por favor ingresa un número de WhatsApp válido sin signos ni espacios (solo números, 8 a 15 dígitos).');
       return;
     }
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
+    const doc = generatePDF();
 
-    // Nombre de taquería centrado
-    doc.setFontSize(18);
-    const textWidth = doc.getTextWidth(taqueriaName);
-    doc.text(taqueriaName, (pageWidth - textWidth) / 2, 20);
+    // Generar URL temporal
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
 
-    doc.setFontSize(12);
-    doc.text(`Factura No: ${invoiceNumber}`, 14, 30);
-    doc.text(`Fecha y Hora: ${currentDateTime}`, 14, 36);
-
-    const tableData = invoiceItems.map(item => [
-      item.name,
-      item.quantity,
-      `$${item.price.toFixed(2)}`,
-      `$${(item.quantity * item.price).toFixed(2)}`
-    ]);
-
-    autoTable(doc, {
-      startY: 45,
-      head: [['Producto', 'Cantidad', 'Precio Unitario', 'Total']],
-      body: tableData,
-    });
-
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 14, finalY);
-    doc.text(`Total a Pagar: $${total.toFixed(2)}`, 14, finalY + 6);
-    doc.text(`Pago Recibido: $${Number(paymentAmount).toFixed(2)}`, 14, finalY + 12);
-    doc.text(`Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}`, 14, finalY + 18);
-
-    doc.setFontSize(14);
-    doc.text("¡Gracias por su compra!", 14, finalY + 28);
-    doc.text("¡Vuelva pronto!", 14, finalY + 36);
-
-    // Dirección al final
-    doc.setFontSize(12);
-    doc.text(`Dirección: ${taqueriaAddress}`, 14, doc.internal.pageSize.getHeight() - 20);
-
-    doc.save(`Factura-${invoiceNumber}.pdf`);
-
+    // Solo mensaje de texto con resumen
     let message = `*Factura No:* ${invoiceNumber}\n`;
-    message += `*Fecha y Hora:* ${currentDateTime}\n`;
+    message += `*Fecha y Hora:* ${currentDateTime}\n\n`;
     message += `Productos:\n`;
     invoiceItems.forEach(item => {
       message += `- ${item.name} x${item.quantity} = $${(item.quantity * item.price).toFixed(2)}\n`;
