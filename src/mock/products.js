@@ -14,9 +14,10 @@ export const taqueriaProducts = [
   { id: 'prod13', name: 'Burritos mixtos', price: 3.00, category: 'Tacos' },
   { id: 'prod14', name: 'Burritos al pastor', price: 3.00, category: 'Tacos' },
   { id: 'prod15', name: 'Sopa de tortillas', price: 3.00, category: 'Sopas' },
-  { id: 'prod16', name: 'Sodas en Latadas', price: 0.75, category: 'Bebidas' },
-  { id: 'prod17', name: 'Jugos del valle', price: 0.75, category: 'Bebidas' },
-  { id: 'prod18', name: 'Gatorade', price: 1.00, category: 'Bebidas' },
+  { id: 'prod16', name: 'Sodas en Latadas', price: 1.00, category: 'Bebidas' },
+  { id: 'prod17', name: 'Jugos del valle', price: 1.00, category: 'Bebidas' },
+  { id: 'prod18', name: 'Gatorade', price: 1.25, category: 'Bebidas' },
+  { id: 'prod19', name: 'Powerade', price: 1.25, category: 'Bebidas' },
   { id: 'prod19', name: 'Botellas de agua', price: 0.50, category: 'Bebidas' },
   
 ];

@@ -256,12 +256,6 @@ const App = () => {
             />
           </label>
         </div>
-
-        <InvoiceActions
-          onGenerateInvoice={handleGenerateInvoice}
-          onClearInvoice={handleClearInvoice}
-        />
-
         <div className="mt-4">
           <button
             onClick={handleSendWhatsApp}
@@ -270,6 +264,13 @@ const App = () => {
             Enviar factura por WhatsApp
           </button>
         </div>
+
+        <InvoiceActions
+          onGenerateInvoice={handleGenerateInvoice}
+          onClearInvoice={handleClearInvoice}
+        />
+
+        
       </div>
     </div>
   );
