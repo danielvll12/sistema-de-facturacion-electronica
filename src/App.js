@@ -16,9 +16,10 @@ function reiniciarFacturaCada24Horas() {
 
   if (ultimaFecha !== hoy) {
     localStorage.setItem("fechaFactura", hoy);
-    localStorage.setItem("numeroFactura", 1);
+    localStorage.setItem(INVOICE_KEY, "1"); // reinicia el contador
   }
 }
+
 
 reiniciarFacturaCada24Horas();
 
@@ -411,7 +412,7 @@ const handleAddProduct = (product) => {
                   Exportar ventas a CSV
                 </button>
                 <button onClick={resetSales} className="ml-2 bg-red-600 text-white px-4 py-2 rounded">
-                  Resetear ventas del día
+                  Eliminar ventas del día
                 </button>
               </div>
 
