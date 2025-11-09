@@ -18,6 +18,6 @@ export const taqueriaProducts = [
   { id: 'prod17', name: 'Jugos del valle', price: 1.00, category: 'Bebidas' },
   { id: 'prod18', name: 'Gatorade', price: 1.25, category: 'Bebidas' },
   { id: 'prod19', name: 'Powerade', price: 1.25, category: 'Bebidas' },
-  { id: 'prod19', name: 'Botellas de agua', price: 0.50, category: 'Bebidas' },
+  { id: 'prod20', name: 'Botellas de agua', price: 0.50, category: 'Bebidas' },
   
 ];

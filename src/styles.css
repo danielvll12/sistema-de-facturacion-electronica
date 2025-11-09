@@ -1,3 +1,229 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* 🎅 Fondo general navideño, suave y profesional */
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(180deg, #b22222 0%, #006400 100%);
+  color: #222;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* 🎄 Encabezado */
+header {
+  width: 100%;
+  background: linear-gradient(90deg, #ff0000, #008000);
+  padding: 15px 10px;
+  text-align: center;
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+
+header span {
+  color: gold;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+/* 🌟 Contenedor principal */
+.container {
+  width: 95%;
+  max-width: 900px;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 15px auto;
+  box-shadow: 0 0 15px rgba(0, 128, 0, 0.4);
+  box-sizing: border-box;
+}
+
+/* 🧾 Tablas y áreas de productos */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  color: #222;
+  font-size: 1rem;
+  table-layout: fixed;
+  word-wrap: break-word;
+}
+
+th {
+  background: #d32f2f;
+  color: white;
+  padding: 8px;
+  border: 1px solid #ccc;
+}
+
+td {
+  padding: 6px;
+  text-align: center;
+  border: 1px solid #ccc;
+}
+
+/* 📦 Inputs y selects */
+input,
+select {
+  background: #fff;
+  color: #000;
+  border: 2px solid #008000;
+  border-radius: 8px;
+  padding: 10px;
+  width: 100%;
+  margin: 5px 0;
+  box-sizing: border-box;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #ff0000;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+}
+
+/* 🎁 Botones */
+button {
+  background: linear-gradient(90deg, #ff0000, #00a000);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 18px;
+  margin: 8px 0;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  transition: transform 0.2s, box-shadow 0.3s;
+}
+
+button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+}
+
+/* 💸 Sección total de venta */
+.total {
+  background: #006400;
+  color: #fff;
+  font-size: 1.2rem;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* 🎅 Footer */
+footer {
+  width: 100%;
+  background: linear-gradient(90deg, #008000, #ff0000);
+  color: #fff;
+  text-align: center;
+  padding: 15px;
+  margin-top: auto;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* ❄️ Nieve suave */
+.snow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  color: white;
+  opacity: 0.9;
+  animation: fall linear infinite;
+  font-size: 1.5rem;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+/* ✨ Texto parpadeante tipo luces navideñas */
+.blink {
+  animation: blink 1.5s infinite alternate;
+}
+
+@keyframes blink {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.4;
+  }
+}
+
+/* 📱 RESPONSIVIDAD MÓVIL */
+@media (max-width: 768px) {
+  header {
+    font-size: 1.5rem;
+    padding: 12px;
+  }
+
+  .container {
+    padding: 12px;
+    margin: 10px auto;
+    width: 95%;
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    padding: 6px;
+  }
+
+  input, select {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  button {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  footer {
+    font-size: 0.8rem;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    font-size: 1.3rem;
+  }
+
+  .total {
+    font-size: 1rem;
+  }
+
+  button {
+    font-size: 0.85rem;
+    padding: 10px;
+  }
+}
