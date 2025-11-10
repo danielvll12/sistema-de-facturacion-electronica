@@ -6,7 +6,7 @@ import autoTable from 'jspdf-autotable';
 import InvoiceHeader from './components/InvoiceHeader';
 import ProductSelector from './components/ProductSelector';
 import InvoiceTable from './components/InvoiceTable';
-import InvoiceActions from './components/InvoiceActions';
+
 import { useDailySales } from './hooks/useDailySales';
 import './styles.css';
 
@@ -403,7 +403,7 @@ const handleAddProduct = (product) => {
 
           <aside>
             <div className="p-4 bg-white rounded-xl shadow">
-              <h2 className="text-xl font-semibold mb-2">Resumen</h2>
+              <h2 className="text-xl font-semibold mb-2">Detalle de Venta</h2>
               <p>Total a pagar: <strong>${total.toFixed(2)}</strong></p>
               <div className="total mt-4">Vendido hoy: <strong>${getTotalDailySales().toFixed(2)}</strong></div>
 
@@ -432,10 +432,7 @@ const handleAddProduct = (product) => {
               </div>
             </div>
 
-            <InvoiceActions
-              onGenerateInvoice={handleGenerateInvoice}
-              onClearInvoice={handleClearInvoice}
-            />
+           
           </aside>
         </div>
       </div>
