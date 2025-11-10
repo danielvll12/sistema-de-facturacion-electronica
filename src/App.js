@@ -10,19 +10,20 @@ import InvoiceTable from './components/InvoiceTable';
 import { useDailySales } from './hooks/useDailySales';
 import './styles.css';
 
-function reiniciarFacturaCada24Horas() {
-  const hoy = new Date().toLocaleDateString();
+const INVOICE_KEY = "taqueria_invoice_number_v1";
+
+// Reinicia número de factura automáticamente al cambiar de día
+function reiniciarFacturaCadaDia() {
+  const hoy = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const ultimaFecha = localStorage.getItem("fechaFactura");
 
   if (ultimaFecha !== hoy) {
+    localStorage.setItem(INVOICE_KEY, "1");
     localStorage.setItem("fechaFactura", hoy);
-    localStorage.setItem(INVOICE_KEY, "1"); // reinicia el contador
   }
 }
 
-
-reiniciarFacturaCada24Horas();
-
+reiniciarFacturaCadaDia();
 
 const formatDateTime = (date) => {
   const yyyy = date.getFullYear();
@@ -34,37 +35,29 @@ const formatDateTime = (date) => {
   return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
 };
 
-const INVOICE_KEY = "taqueria_invoice_number_v1";
-
 const App = () => {
   const [invoiceItems, setInvoiceItems] = useState(() => {
     const savedItems = localStorage.getItem('invoiceItems');
     return savedItems ? JSON.parse(savedItems) : [];
   });
 
-  // invoiceNumber persistence
   const [invoiceNumber, setInvoiceNumber] = useState(() => {
-    try {
-      const saved = localStorage.getItem(INVOICE_KEY);
-      return saved ? Number(saved) : 1;
-    } catch {
-      return 1;
-    }
+    const saved = localStorage.getItem(INVOICE_KEY);
+    return saved ? Number(saved) : 1;
   });
 
   const taqueriaName = "Taquería Mercy";
   const taqueriaAddress = "3era calle oriente 6 av. norte, media cuadra arriba de CAESS, Cojutepeque, Cuscatlán";
   const [currentDateTime, setCurrentDateTime] = useState(formatDateTime(new Date()));
-
   const [paymentAmount, setPaymentAmount] = useState('');
   const [change, setChange] = useState(null);
-  const [whatsappNumber, setWhatsappNumber] = useState('');
   const [clientName, setClientName] = useState('');
 
-  // daily sales hook
   const { sales, registerSale, resetSales, getTotalDailySales } = useDailySales();
 
-  // snow (navideño) kept from your previous version if needed
+  const [showSalesHistory, setShowSalesHistory] = useState(false);
+
+  // Snow effect navideño
   useEffect(() => {
     const snowContainer = document.createElement("div");
     snowContainer.className = "snow-container";
@@ -95,33 +88,24 @@ const App = () => {
     localStorage.setItem('invoiceItems', JSON.stringify(invoiceItems));
   }, [invoiceItems]);
 
-  // persist invoice number
   useEffect(() => {
-    try {
-      localStorage.setItem(INVOICE_KEY, invoiceNumber.toString());
-    } catch (e) {
-      console.error("Error saving invoice number", e);
-    }
+    localStorage.setItem(INVOICE_KEY, invoiceNumber.toString());
   }, [invoiceNumber]);
 
   const subtotal = invoiceItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
   const total = subtotal;
 
-const handleAddProduct = (product) => {
-  setInvoiceItems(prevItems => {
-    const existingItem = prevItems.find(item => item.id === product.id);
-
-    if (existingItem) {
-      return prevItems.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-    }
-
-    return [...prevItems, { ...product, quantity: 1 }];
-  });
-};
+  const handleAddProduct = (product) => {
+    setInvoiceItems(prevItems => {
+      const existingItem = prevItems.find(item => item.id === product.id);
+      if (existingItem) {
+        return prevItems.map(item =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prevItems, { ...product, quantity: 1 }];
+    });
+  };
 
   const handleRemoveItem = (productId) => {
     setInvoiceItems(prevItems => prevItems.filter(item => item.id !== productId));
@@ -136,7 +120,6 @@ const handleAddProduct = (product) => {
 
   const generatePDF = () => {
     const doc = new jsPDF();
-
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
 
@@ -155,7 +138,6 @@ const handleAddProduct = (product) => {
     }
 
     y += 4;
-
     const tableData = invoiceItems.map(item => [
       item.name,
       item.quantity,
@@ -206,7 +188,6 @@ const handleAddProduct = (product) => {
     const doc = generatePDF();
     doc.save(`Factura-${invoiceNumber}.pdf`);
 
-    // Register sale in daily sales
     const saleRecord = {
       invoiceNumber,
       dateISO: new Date().toISOString(),
@@ -215,19 +196,17 @@ const handleAddProduct = (product) => {
       items: invoiceItems,
       total: Number(total),
       payment: Number(paymentAmount),
-      change: change !== null ? Number(change) : 0,
-      whatsapp: whatsappNumber || ''
+      change: change !== null ? Number(change) : 0
     };
     registerSale(saleRecord);
 
-    alert(`Factura No. ${invoiceNumber} generada y guardada en ventas diarias.`);
+    alert(`Factura No. ${invoiceNumber} generada y guardada en ventas.`);
 
     setInvoiceNumber(prev => prev + 1);
     setInvoiceItems([]);
     setPaymentAmount('');
     setChange(null);
     setClientName('');
-    setWhatsappNumber('');
   };
 
   const handleCalculateChange = () => {
@@ -248,64 +227,14 @@ const handleAddProduct = (product) => {
     }
   };
 
-  const handleSendWhatsApp = () => {
-    if (invoiceItems.length === 0) {
-      alert('No hay productos en la factura para enviar.');
-      return;
+  const handleDeleteSales = () => {
+    if (window.confirm('¿Eliminar todas las ventas registradas?')) {
+      resetSales();
     }
-    if (paymentAmount === '' || Number(paymentAmount) < total) {
-      alert(`El pago debe ser un número válido y mayor o igual al total $${total.toFixed(2)}.`);
-      return;
-    }
-    if (!whatsappNumber.match(/^\d{8,15}$/)) {
-      alert('Por favor ingresa un número de WhatsApp válido sin signos ni espacios.');
-      return;
-    }
-
-    const doc = generatePDF();
-    const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-
-    let message = `*Factura No:* ${invoiceNumber}\n`;
-    message += `*Fecha y Hora:* ${currentDateTime}\n\n`;
-    if (clientName) message += `Cliente: ${clientName}\n\n`;
-    message += `Productos:\n`;
-    invoiceItems.forEach(item => {
-      message += `- ${item.name} x${item.quantity} = $${(item.quantity * item.price).toFixed(2)}\n`;
-    });
-    message += `\nTotal: $${total.toFixed(2)}\nPago: $${Number(paymentAmount).toFixed(2)}\n`;
-    message += `Vuelto: $${change !== null ? change.toFixed(2) : '0.00'}\n\n`;
-    message += " ¡Gracias por su compra y Feliz Navidad! ";
-
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-
-    // Nota: no es posible adjuntar el PDF automáticamente al abrir wa.me (sin usar API).
-    // Abrimos el chat con el mensaje. El usuario podrá adjuntar el PDF manualmente (desde descargas).
-    window.open(whatsappUrl, '_blank');
   };
 
-  // Export sales to CSV
-  const exportSalesToCSV = () => {
-    if (!sales || sales.length === 0) {
-      alert("No hay ventas para exportar.");
-      return;
-    }
-
-    const header = ["Factura", "Fecha", "Cliente", "Total", "Pago", "Vuelto", "Items"];
-    const rows = sales.map(s => {
-      const itemsText = s.items.map(it => `${it.name} x${it.quantity}`).join(" | ");
-      return [s.invoiceNumber, s.dateReadable || s.dateISO, s.clientName || "", s.total.toFixed(2), (s.payment||0).toFixed(2), (s.change||0).toFixed(2), itemsText];
-    });
-
-    const csvContent = [header, ...rows].map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ventas_diarias_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const toggleSalesHistory = () => {
+    setShowSalesHistory(prev => !prev);
   };
 
   return (
@@ -365,25 +294,7 @@ const handleAddProduct = (product) => {
             </div>
 
             <div className="my-4 p-4 bg-green-50 rounded shadow">
-              <label className="block mb-2 font-semibold text-green-900">
-                Número de WhatsApp (solo números):
-                <input
-                  type="text"
-                  value={whatsappNumber}
-                  onChange={e => setWhatsappNumber(e.target.value)}
-                  className="mt-1 border rounded p-1 w-48"
-                  placeholder="50371234567"
-                />
-              </label>
-
               <div className="mt-4 flex gap-3 flex-wrap">
-                <button
-                  onClick={handleSendWhatsApp}
-                  className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700"
-                >
-                  Enviar factura por WhatsApp 🎁
-                </button>
-
                 <button
                   onClick={handleGenerateInvoice}
                   className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700"
@@ -407,32 +318,31 @@ const handleAddProduct = (product) => {
               <p>Total a pagar: <strong>${total.toFixed(2)}</strong></p>
               <div className="total mt-4">Vendido hoy: <strong>${getTotalDailySales().toFixed(2)}</strong></div>
 
-              <div className="mt-4">
-                <button onClick={exportSalesToCSV} className="bg-yellow-600 text-white px-4 py-2 rounded">
-                  Exportar ventas a CSV
+              <div className="mt-4 flex gap-2 flex-wrap">
+                <button onClick={toggleSalesHistory} className="bg-yellow-600 text-white px-4 py-2 rounded">
+                  {showSalesHistory ? 'Ocultar historial de ventas' : 'Ver historial de ventas'}
                 </button>
-                <button onClick={resetSales} className="ml-2 bg-red-600 text-white px-4 py-2 rounded">
-                  Eliminar ventas del día
+                <button onClick={handleDeleteSales} className="bg-red-600 text-white px-4 py-2 rounded">
+                  Eliminar todas las ventas
                 </button>
               </div>
 
-              <div className="mt-6 max-h-72 overflow-auto">
-                <h3 className="font-semibold mb-2">Ventas registradas</h3>
-                {sales.length === 0 && <p className="text-sm text-gray-500">Aún no hay ventas registradas.</p>}
-                <ul className="space-y-2">
-                  {sales.slice().reverse().map((s, idx) => (
-                    <li key={`${s.invoiceNumber}-${s.dateISO || idx}`} className="p-2 border rounded">
-                      <div className="text-sm text-gray-600">Factura: {s.invoiceNumber} — {s.dateReadable || new Date(s.dateISO).toLocaleString()}</div>
-                      <div className="font-medium">Total: ${Number(s.total).toFixed(2)}</div>
-                      {s.clientName && <div className="text-sm">Cliente: {s.clientName}</div>}
-                      <div className="text-xs text-gray-700 mt-1">{s.items.map(it => `${it.name} x${it.quantity}`).join(' • ')}</div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {showSalesHistory && (
+                <div className="mt-6 max-h-72 overflow-auto">
+                  {sales.length === 0 && <p className="text-sm text-gray-500">Aún no hay ventas registradas.</p>}
+                  <ul className="space-y-2">
+                    {sales.slice().reverse().map((s, idx) => (
+                      <li key={`${s.invoiceNumber}-${s.dateISO || idx}`} className="p-2 border rounded">
+                        <div className="text-sm text-gray-600">Factura: {s.invoiceNumber} — {s.dateReadable || new Date(s.dateISO).toLocaleString()}</div>
+                        <div className="font-medium">Total: ${Number(s.total).toFixed(2)}</div>
+                        {s.clientName && <div className="text-sm">Cliente: {s.clientName}</div>}
+                        <div className="text-xs text-gray-700 mt-1">{s.items.map(it => `${it.name} x${it.quantity}`).join(' • ')}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-
-           
           </aside>
         </div>
       </div>
